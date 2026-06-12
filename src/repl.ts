@@ -1,37 +1,40 @@
 import { createInterface } from "node:readline";
 import { getCommands } from "./commands.js";
-import { type State } from "./state.js";
 
 export function cleanInput(input: string): string[] {
-  let cleaned = input.trim().toLowerCase();
-  let result = cleaned.split(" ").filter((w) => w.length > 0);
-  return result;
+    let cleaned = input.trim().toLowerCase();
+    let result = cleaned.split(" ").filter(w => w.length > 0);
+    return result;
 }
 
 export function startREPL() {
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
-    prompt: "Pokedex > ",
-  });
+    prompt: "Pokedex > "
+  })
 
-  const state: State = {
-    readline: rl,
-    commands: getCommands(),
-  };
+  rl.prompt()
 
-  rl.prompt();
-  rl.on("line", (command: string) => {
+  rl.on('line', async (command: string)  => {
     if (cleanInput(command).length === 0) {
-      rl.prompt();
+      rl.prompt()
+      return;
     } else {
-      const firstCommand = cleanInput(command)[0];
-      if (firstCommand in state.commands) {
-        state.commands[firstCommand].callback(state);
-      } else {
-        console.log("Unknown command");
+      const commandName = cleanInput(command)[0]
+      //getCommands()
+      const commands = getCommands()
+      if ( commandName in getCommands()) {
+        try {
+          commands[commandName].callback(commands)
+        } catch (e) {
+          console.log(e)
+        }
+        rl.prompt()
+        return
       }
-    }
-    rl.prompt();
-  });
+      console.log(`Unknown command: "${commandName}". Type "help" for a list of commands.`,);
+      rl.prompt()
+    } 
 }
+  )}
